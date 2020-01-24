@@ -1,0 +1,4 @@
+config substitute-path /go/src/github.com/lcaballero/hello /Users/lucascaballero/recent/xplor-delve/hello
+config substitute-path /go/src /Users/lucascaballero/Projects/Go/src
+break main.main
+n
