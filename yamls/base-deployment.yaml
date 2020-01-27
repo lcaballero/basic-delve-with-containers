@@ -1,0 +1,66 @@
+---
+apiVersion: v1
+data:
+  debug.sh: |
+    #!/bin/bash
+    /go/bin/dlv \
+      --listen=:40000 \
+      --headless=true \
+      --api-version=2 \
+      exec /go/src/github.com/lcaballero/hello/hello-debug
+kind: ConfigMap
+metadata:
+  name: debug.sh
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: debug-port
+  labels:
+    run: debug
+spec:
+  type: NodePort
+  ports:
+    - port: 40000
+      name: delve-port
+      protocol: TCP
+      targetPort: 40000
+  selector:
+    run: debug
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: debug
+  labels:
+    app: debug
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: debug
+  template:
+    metadata:
+      labels:
+        app: debug
+    spec:
+      containers:
+      - name: debug
+        image: hw:wip
+        imagePullPolicy: Never
+        ports:
+          - containerPort: 40000
+        command: ["bash"]
+        args: ["/script/debug.sh"]
+        resources:
+          requests:
+            memory: "200Mi"
+        volumeMounts:
+        - name: debug-sh
+          mountPath: /script/debug.sh
+          subPath: debug.sh
+      volumes:
+        - name: debug-sh
+          configMap:
+            name: debug.sh
+
